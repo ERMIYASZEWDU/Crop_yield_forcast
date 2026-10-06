@@ -137,111 +137,219 @@ def validate(region, crop, year, month, altitude, farm_size, fertilizer,
 # --------------------------------------------------------------------------- #
 # Interface
 # --------------------------------------------------------------------------- #
-st.title("Ethiopian smallholder plot: yield and revenue predictor 🌾")
-st.caption("Team Adwa - Qiyas / IADE hackathon. You enter the plot; the app looks up the "
-           "growing-season weather and the market price for you.")
+st.markdown(
+    """
+    <style>
+    .block-container {max-width: 1440px; padding-top: 2.2rem; padding-bottom: 3rem;}
+    [data-testid="stMetric"] {
+        background: linear-gradient(145deg, #ffffff 0%, #f4f8f2 100%);
+        border: 1px solid #e1e9df;
+        border-radius: 14px;
+        padding: 1rem 1.1rem;
+    }
+    [data-testid="stMetricLabel"] {color: #526354;}
+    div.stButton > button[kind="primaryFormSubmit"] {
+        min-height: 3rem; border-radius: 10px; font-weight: 700;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-left, right = st.columns([1, 1], gap="large")
+st.markdown(
+    """
+    <div style="padding:1.6rem 1.8rem; border-radius:18px;
+                background:linear-gradient(115deg,#123b2b,#26734d);
+                color:white; margin-bottom:1.4rem;">
+      <div style="font-size:.78rem; letter-spacing:.12em; text-transform:uppercase;
+                  opacity:.8;">TEAM ADWA · CROP INTELLIGENCE</div>
+      <h1 style="color:white; margin:.45rem 0 .35rem;">A clearer view of your harvest</h1>
+      <p style="font-size:1.05rem; margin:0; opacity:.9;">
+        Estimate plot yield and revenue using your farm details, seasonal weather,
+        and local crop prices.
+      </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-with left:
-    st.subheader("1. Where and when")
-    region = st.selectbox("Region", REGIONS, index=0)
-    crop = st.selectbox("Crop type", CROPS, index=3)
-    year = st.selectbox("Survey year", YEARS, index=3)
-    month = st.selectbox("Planting month", PLANTING_MONTHS, index=4)
+input_col, result_col = st.columns([0.92, 1.28], gap="large")
 
-    st.subheader("2. The plot")
-    altitude = st.number_input("Altitude [m]", min_value=0.0, max_value=4500.0,
-                               value=1800.0, step=50.0)
-    farm_size = st.number_input("Farm size [ha]", min_value=0.0, max_value=200.0,
-                                value=1.2, step=0.1, format="%.2f")
-    fertilizer = st.number_input("Fertilizer [kg/ha]", min_value=0.0, max_value=2000.0,
-                                 value=40.0, step=5.0)
-    improved_seed = st.checkbox("Improved (certified) seed used", value=False)
-    pest_flag = st.checkbox("Pest / disease pressure observed", value=False)
-    soil = st.slider("Soil quality index", 0.0, 1.0, 0.55, step=0.01)
-    labor = st.number_input("Labor days per hectare", min_value=0.0, max_value=400.0,
-                            value=45.0, step=1.0)
-    distance = st.number_input("Distance to market [km]", min_value=0.0, max_value=500.0,
-                               value=8.0, step=0.5)
-    run = st.button("Predict yield and revenue", type="primary")
+with input_col:
+    st.subheader("🌱 Describe your plot")
+    st.caption("Choose a location and enter the farm details. Weather and prices are looked up automatically.")
 
-with right:
+    with st.form("plot_prediction_form", border=True):
+        st.markdown("#### Location and season")
+        location_a, location_b = st.columns(2)
+        with location_a:
+            region = st.selectbox("Region", REGIONS, index=0)
+            year = st.selectbox("Survey year", YEARS, index=3)
+        with location_b:
+            crop = st.selectbox("Crop", CROPS, index=3)
+            month = st.selectbox("Planting month", PLANTING_MONTHS, index=4)
+
+        st.markdown("#### Farm conditions")
+        plot_a, plot_b = st.columns(2)
+        with plot_a:
+            altitude = st.number_input(
+                "Altitude (m)", min_value=0.0, max_value=4500.0,
+                value=1800.0, step=50.0,
+            )
+            farm_size = st.number_input(
+                "Farm size (ha)", min_value=0.0, max_value=200.0,
+                value=1.2, step=0.1, format="%.2f",
+            )
+            fertilizer = st.number_input(
+                "Fertilizer (kg/ha)", min_value=0.0, max_value=2000.0,
+                value=40.0, step=5.0,
+            )
+            soil = st.slider("Soil quality", 0.0, 1.0, 0.55, step=0.01)
+        with plot_b:
+            labor = st.number_input(
+                "Labor (days/ha)", min_value=0.0, max_value=400.0,
+                value=45.0, step=1.0,
+            )
+            distance = st.number_input(
+                "Distance to market (km)", min_value=0.0, max_value=500.0,
+                value=8.0, step=0.5,
+            )
+            improved_seed = st.checkbox("Improved seed used")
+            pest_flag = st.checkbox("Pest or disease pressure observed")
+
+        run = st.form_submit_button(
+            "Estimate yield and revenue", type="primary", use_container_width=True,
+        )
+
+with result_col:
+    st.subheader("📊 Your estimate")
     if not run:
-        st.subheader("3. Result")
-        st.info("Set the plot details on the left and press **Predict yield and revenue**.")
-        st.subheader("What the app does for you")
-        st.markdown(
-            "- reads the **growing-season weather** for this region, year and planting month "
-            "(planting month + 3 months)\n"
-            "- fills the plot's seasonal rainfall from the survey median for that region-season\n"
-            "- reads the **market price** for this crop, region and year\n"
-            "- runs the trained pipeline (same preprocessing as training) and converts yield "
-            "into revenue")
+        with st.container(border=True):
+            st.markdown("### Ready when you are")
+            st.write("Complete the plot form and select **Estimate yield and revenue** to see your results.")
+            st.divider()
+            preview = st.columns(3)
+            preview[0].markdown("🌦️  \n**Season weather**  \nLooked up for your region and planting month")
+            preview[1].markdown("🌾  \n**Yield estimate**  \nPredicted by the trained crop-yield model")
+            preview[2].markdown("💰  \n**Revenue estimate**  \nBased on the matching market price")
+        st.caption("Estimates are model outputs for planning, not guaranteed harvests or income.")
     else:
-        ok, notes = validate(region, crop, year, month, altitude, farm_size,
-                             fertilizer, soil, labor, distance)
+        ok, notes = validate(
+            region, crop, year, month, altitude, farm_size,
+            fertilizer, soil, labor, distance,
+        )
         wx = lookup_weather(region, year, month)
         price = lookup_price(region, crop, year)
 
         if not ok:
             st.error(notes[0])
         elif wx is None or price is None:
-            st.error("No weather or price record for that combination - "
-                     "please pick another region, crop or year.")
+            st.error(
+                "No weather or price record is available for that selection. "
+                "Try another region, crop, or year."
+            )
         else:
             rainfall = lookup_plot_rain(region, year, month)
-            X, _ = build_row(region, crop, year, month, altitude, farm_size,
-                             fertilizer, int(improved_seed), int(pest_flag),
-                             soil, labor, distance, rainfall)
+            X, _ = build_row(
+                region, crop, year, month, altitude, farm_size,
+                fertilizer, int(improved_seed), int(pest_flag),
+                soil, labor, distance, rainfall,
+            )
             pred = float(np.clip(PIPE.predict(X)[0], 0.0, None))
             revenue = pred * farm_size * 10.0 * price
+            comparison = bench[
+                (bench.region == region) & (bench.crop_type == crop)
+            ]
 
-            st.subheader("3. Result")
-            m1, m2, m3 = st.columns(3)
-            m1.metric("Predicted yield", f"{pred:.2f} t/ha")
-            m2.metric("Estimated revenue for this plot",
-                      f"{revenue:,.0f} birr")
-            m3.metric("Revenue per hectare", f"{pred * 10 * price:,.0f} birr/ha")
+            with st.container(border=True):
+                metric_cols = st.columns(3)
+                metric_cols[0].metric("Predicted yield", f"{pred:.2f} t/ha")
+                metric_cols[1].metric("Plot revenue", f"{revenue:,.0f} birr")
+                metric_cols[2].metric(
+                    "Revenue per hectare", f"{pred * 10 * price:,.0f} birr/ha"
+                )
 
-            st.markdown(
-                f"**Looked up for you:** season average "
-                f"**{wx['wx_season_mean_temp_c']:.1f} °C**, season rainfall "
-                f"**{wx['wx_season_rain_total_mm']:.0f} mm** "
-                f"({int(wx['wx_n_months_observed'])}/4 months observed), "
-                f"**{int(wx['wx_extreme_heat_days'])}** extreme-heat days, plot rainfall "
-                f"reference **{rainfall:.0f} mm**, price **{price:,.0f} birr/quintal**.")
-            st.caption(f"Revenue = {pred:.2f} t/ha x {farm_size:.2f} ha x 10 quintals/ton "
-                       f"x {price:,.0f} birr/quintal. Price and weather come from the cleaned "
-                       f"tables in app/assets - you never type them.")
-            for n in notes:
-                st.warning(n)
+                if not comparison.empty:
+                    base = float(comparison.mean_yield_t_ha.iloc[0])
+                    difference = pred - base
+                    direction = "above" if difference >= 0 else "below"
+                    st.info(
+                        f"Compared with the {region} {crop} average "
+                        f"({base:.2f} t/ha), this estimate is "
+                        f"{abs(difference):.2f} t/ha {direction}."
+                    )
 
-            st.subheader("4. How this plot compares")
-            b = bench[(bench.region == region) & (bench.crop_type == crop)]
-            if not b.empty:
-                base = float(b.mean_yield_t_ha.iloc[0])
-                comp = pd.DataFrame({
-                    "group": [f"This plot (predicted)",
-                              f"{region} x {crop} average"],
-                    "yield_t_ha": [pred, base],
-                })
-                st.bar_chart(comp.set_index("group"))
+                for note in notes:
+                    st.warning(note)
 
-            st.subheader("5. What-if: yield across fertilizer rates")
-            rates = np.linspace(0, 200, 11)
-            whatif = []
-            for r in rates:
-                Xw, _ = build_row(region, crop, year, month, altitude, farm_size,
-                                  float(r), int(improved_seed), int(pest_flag),
-                                  soil, labor, distance, rainfall)
-                whatif.append(float(np.clip(PIPE.predict(Xw)[0], 0.0, None)))
-            chart = pd.DataFrame({"fertilizer_kg_per_ha": rates,
-                                  "predicted_yield_t_ha": whatif}).set_index(
-                "fertilizer_kg_per_ha")
-            st.line_chart(chart)
-            st.caption(f"Your plot uses {fertilizer:.0f} kg/ha. The curve is the model's "
-                       f"answer with everything else held fixed.")
+                st.markdown("#### Seasonal conditions and market")
+                context = st.columns(4)
+                context[0].metric(
+                    "Mean temperature", f"{wx['wx_season_mean_temp_c']:.1f} °C"
+                )
+                context[1].metric(
+                    "Season rainfall", f"{wx['wx_season_rain_total_mm']:.0f} mm"
+                )
+                context[2].metric(
+                    "Extreme-heat days", f"{int(wx['wx_extreme_heat_days'])}"
+                )
+                context[3].metric("Market price", f"{price:,.0f} birr/qtl")
+                st.caption(
+                    f"Weather coverage: {int(wx['wx_n_months_observed'])}/4 months · "
+                    f"Plot rainfall reference: {rainfall:.0f} mm. "
+                    f"Revenue uses 10 quintals per ton and the full {farm_size:.2f} ha."
+                )
+
+            overview_tab, scenario_tab, method_tab = st.tabs(
+                ["Yield comparison", "Fertilizer scenario", "How it works"]
+            )
+            with overview_tab:
+                if not comparison.empty:
+                    comp = pd.DataFrame({
+                        "Yield (t/ha)": [pred, base],
+                    }, index=["This plot · predicted", f"{region} {crop} average"])
+                    st.bar_chart(comp, color="#26734d")
+                else:
+                    st.info("No regional crop benchmark is available for comparison.")
+            with scenario_tab:
+                rates = np.linspace(0, 200, 11)
+                whatif = []
+                for rate in rates:
+                    Xw, _ = build_row(
+                        region, crop, year, month, altitude, farm_size,
+                        float(rate), int(improved_seed), int(pest_flag),
+                        soil, labor, distance, rainfall,
+                    )
+                    whatif.append(
+                        float(np.clip(PIPE.predict(Xw)[0], 0.0, None))
+                    )
+                chart = pd.DataFrame(
+                    {"Predicted yield (t/ha)": whatif},
+                    index=pd.Index(rates, name="Fertilizer (kg/ha)"),
+                )
+                st.line_chart(chart, color="#26734d")
+                st.caption(
+                    f"Your current rate is {fertilizer:.0f} kg/ha. "
+                    "The scenario varies fertilizer and holds other inputs fixed; "
+                    "it is not a fertilizer recommendation."
+                )
+            with method_tab:
+                st.markdown(
+                    "- Weather is looked up for the selected region, year, and "
+                    "four-month growing-season window.\n"
+                    "- The matching crop, region, and year market price is used "
+                    "to estimate gross revenue.\n"
+                    "- The trained model predicts yield; revenue is calculated "
+                    "from predicted yield × farm area × price."
+                )
+                st.caption(
+                    f"Revenue calculation: {pred:.2f} t/ha × {farm_size:.2f} ha "
+                    f"× 10 quintals/ton × {price:,.0f} birr/quintal."
+                )
+
+            st.caption(
+                "Planning estimate only: actual harvest and market prices can vary."
+            )
 
 st.divider()
 st.caption("Model: "
