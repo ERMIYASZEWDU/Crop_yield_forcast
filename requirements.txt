@@ -1,0 +1,15 @@
+# Team Adwa - Qiyas / IADE Ethiopian Smallholder Crop-Yield Challenge
+# Pinned versions used to produce every notebook, figure, report, model and the demo.
+# Install with:  pip install -r requirements.txt
+pandas==3.0.3
+numpy==2.4.6
+scikit-learn==1.9.0
+matplotlib==3.11.0
+joblib==1.5.3
+tabulate==0.10.0        # df.to_markdown() in the report writers
+jupyter==1.1.1          # running the notebooks
+ipykernel==6.31.0
+nbconvert==7.17.1       # jupyter nbconvert --execute (re-runs every notebook)
+nbformat==5.10.4
+streamlit==1.58.0       # the demo app (also pinned in app/requirements.txt)
+python-pptx==1.0.2      # only needed to regenerate presentation/ from notebook 04

@@ -1,0 +1,26 @@
+column,dtype,source_file,description,derivation,used_as_model_feature
+plot_id,str,crop_yield_*.csv,Unique plot ID / join key for scoring,as given,no
+region,object,crop_yield_*.csv + regional_weather.csv,Ethiopian region of the plot,label standardisation (alias map),yes
+crop_type,string,crop_yield_*.csv + market_prices.csv,Crop grown,label standardisation (alias map),yes
+survey_year,int64,crop_yield_*.csv,Survey / season year 2021-2024,"as given, integer",yes
+planting_month,object,crop_yield_*.csv,Month the crop was planted,label standardisation,yes
+altitude_m,float64,crop_yield_*.csv,"Plot elevation, metres above sea level",as given,yes
+rainfall_mm_season,float64,crop_yield_*.csv,"Plot self-reported growing-season rainfall, mm",median-imputed (train median); capped at train p99.5,yes
+farm_size_ha,float64,crop_yield_*.csv,"Farm size, hectares",capped at train p99.5,yes
+fertilizer_kg_per_ha,float64,crop_yield_*.csv,"Fertilizer applied, kg/ha",median-imputed; capped at train p99.5,yes
+improved_seed_used,int64,crop_yield_*.csv,Certified improved seed (0/1),"as given, integer",yes
+pest_disease_flag,int64,crop_yield_*.csv,Pest/disease pressure (0/1),-999 sentinel -> missing -> train mode,yes
+soil_quality_index,float64,crop_yield_*.csv,Composite soil quality (0-1),median-imputed,yes
+labor_days_per_ha,float64,crop_yield_*.csv,Labor-days per hectare,-999 sentinel -> missing -> train median; capped at train p99.5,yes
+distance_to_market_km,float64,crop_yield_*.csv,"Distance to nearest market, km",capped at train p99.5,yes
+wx_season_mean_temp_c,float64,regional_weather.csv,"Mean temperature over the growing-season window, degC",mean of planting month + 3 following months for the plot's region/year,yes (weather)
+wx_season_rain_total_mm,float64,regional_weather.csv,"Station rainfall total over the growing-season window, mm",sum of the same 4 monthly readings,yes (weather)
+wx_extreme_heat_days,int64,regional_weather.csv,Extreme-heat days during the window,sum of extreme_heat_days over the 4 window months,yes (weather)
+wx_n_months_observed,int64,regional_weather.csv,How many of the 4 window months exist in the raw weather table (0-4),count of observed cells before climatology filling,yes (weather)
+wx_temp_anomaly_c,float64,regional_weather.csv,"Window temperature minus the region's own typical window temperature, degC",wx_season_mean_temp_c - mean of the same calendar months for that region across all years,yes (weather)
+wx_rain_anomaly_mm,float64,regional_weather.csv,"Window rainfall minus the region's typical window rainfall, mm",wx_season_rain_total_mm - regional climatology for those months,no (reported in analysis)
+price_birr_per_quintal,float64,market_prices.csv,"Market price, birr per quintal (ANALYSIS ONLY - never a model feature)",unit-corrected (x100 where recorded per kg) + missing filled,no
+planting_month_num,int64,crop_yield_*.csv,Planting month as 1-12 ordinal,map from planting_month,yes
+fert_x_seed,float64,crop_yield_*.csv,Interaction: fertilizer x improved seed,fertilizer_kg_per_ha * improved_seed_used,yes
+rain_gap_mm,float64,crop_yield_*.csv + regional_weather.csv,"Plot-reported rainfall minus station season rainfall, mm",rainfall_mm_season - wx_season_rain_total_mm,yes (weather)
+yield_tons_per_ha,float64,crop_yield_train.csv,"TRUE yield, tons per hectare (train only)",as given (target),target
